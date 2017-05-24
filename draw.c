@@ -8,6 +8,12 @@
 #include "math.h"
 #include "gmath.h"
 
+void scanlineC(int b, int m, int t) {
+  int x0, x1, y;
+
+
+}
+
 /*======== void add_polygon() ==========
 Inputs:   struct matrix *surfaces
          double x0
@@ -51,13 +57,20 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
  
   int point;
   double *normal;
+  int bot, mid, top;
   
   for (point=0; point < polygons->lastcol-2; point+=3) {
 
     normal = calculate_normal(polygons, point);
 
     if ( normal[2] > 0 ) {
-    
+
+      bot = polygons->m[1][point];
+      mid = polygons->m[1][point+1];
+      top = polygons->m[1][point+2];
+
+      scanlineC(bot, mid, top);
+
       draw_line( polygons->m[0][point],
 		 polygons->m[1][point],
 		 polygons->m[0][point+1],

@@ -5,6 +5,8 @@
 #include "ml6.h"
 
 
+//scanline conversion
+
 //polygon organization
 void add_polygons( struct matrix * points, 
 		   double x0, double y0, double z0, 
