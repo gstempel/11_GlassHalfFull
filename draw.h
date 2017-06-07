@@ -4,8 +4,9 @@
 #include "matrix.h"
 #include "ml6.h"
 
-
 //scanline conversion
+void scanlineC(int bx, int mx, int tx, int by, int my, int ty, screen s);
+int * findbmt(int p, struct matrix *polygons);
 
 //polygon organization
 void add_polygons( struct matrix * points, 

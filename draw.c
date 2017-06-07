@@ -7,11 +7,118 @@
 #include "matrix.h"
 #include "math.h"
 #include "gmath.h"
+#include "time.h"
 
-void scanlineC(int b, int m, int t) {
-  int x0, x1, y;
+void scanlineC(int bx, int mx, int tx, int by, int my, int ty, screen s) {
+  printf("\nScanline converting...\n");
+  double x0, x1, m1, m2, m3;
+  int dY, dX, y;
 
+  //Set initial points
+  x0 = (double)bx;
+  x1 = (double)bx;
+  y = by;
 
+  printf("bottom: (%d, %d)\nmiddle: (%d, %d)\ntop: (%d, %d)\n", bx, by, mx, my, tx, ty);
+
+  //Set color
+  color c;
+  srand(time(NULL));
+  c.red = rand() % 255;
+  c.green = rand() % 255;
+  c.blue =  rand() % 255;    
+
+  //Find Slopes
+  //top to bottom
+  dY = ty-by;
+  dX = tx-bx;
+  if (dY == 0) { m1 = 0.00; }
+  else { m1 = (1.00)*dX/dY; }
+  //middle to bottom
+  dY = my-by;
+  dX = mx-bx;
+  if (dY == 0) { m2 = 0.00; }
+  else { m2 = (1.00)*dX/dY; }
+  //top to middle
+  dY = ty-my;
+  dX = tx-mx;
+  if (dY == 0) { m3 = 0.00; }
+  else { m3 = (1.00)*dX/dY; }
+  printf("Slope 1: %f\nSlope 2: %f\nSlope 3: %f\n", m1, m2, m3);
+
+  while( y < ty ) {
+    x0 += m1;
+    if (y >= my) { x1 += m3; }
+    else { x1 += m2; }
+
+    y++;
+    draw_line(x0, y, x1, y, s, c);
+  }
+}
+
+int * findbmt(int p, struct matrix *polygons) {
+  int bx, mx, tx, by, my, ty;
+  int *ret = malloc(sizeof(int)*10);
+
+  //If p is bottom
+  if (polygons->m[1][p] <= polygons->m[1][p+1] && polygons->m[1][p] < polygons->m[1][p+2]) {
+    bx = polygons->m[0][p];
+    by = polygons->m[1][p];
+    if (polygons->m[1][p+1] <= polygons->m[1][p+2]) {
+      mx = polygons->m[0][p+1];
+      my = polygons->m[1][p+1];
+      tx = polygons->m[0][p+2];
+      ty = polygons->m[1][p+2];
+    }
+    else {
+      mx = polygons->m[0][p+2];
+      my = polygons->m[1][p+2];
+      tx = polygons->m[0][p+1];
+      ty = polygons->m[1][p+1];
+    }
+  }
+  //if p+1 is bottom
+  else if (polygons->m[1][p+1] <= polygons->m[1][p] && polygons->m[1][p+1] < polygons->m[1][p+2]) {
+    bx = polygons->m[0][p+1];
+    by = polygons->m[1][p+1];
+    if (polygons->m[1][p] <= polygons->m[1][p+2]) {
+      mx = polygons->m[0][p];
+      my = polygons->m[1][p];
+      tx = polygons->m[0][p+2];
+      my = polygons->m[1][p+2];
+    }
+    else {
+      mx = polygons->m[0][p+2];
+      my = polygons->m[1][p+2];
+      tx = polygons->m[0][p];
+      ty = polygons->m[1][p];
+    }
+  }
+  //if p+2 is bottom
+  else {
+    bx = polygons->m[0][p+2];
+    by = polygons->m[1][p+2];
+    if (polygons->m[1][p] <= polygons->m[1][p+1]) {
+      mx = polygons->m[0][p];
+      my = polygons->m[1][p];
+      tx = polygons->m[0][p+1];
+      ty = polygons->m[1][p+1];
+    }
+    else {
+      mx = polygons->m[0][p+1];
+      my = polygons->m[1][p+1];
+      tx = polygons->m[0][p];
+      ty = polygons->m[1][p];
+    }
+  }
+
+  ret[0] = bx;
+  ret[1] = mx;
+  ret[2] = tx;
+  ret[3] = by;
+  ret[4] = my;
+  ret[5] = ty;
+  return ret;
 }
 
 /*======== void add_polygon() ==========
@@ -57,7 +164,7 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
  
   int point;
   double *normal;
-  int bot, mid, top;
+  int *bmt;
   
   for (point=0; point < polygons->lastcol-2; point+=3) {
 
@@ -65,11 +172,9 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
 
     if ( normal[2] > 0 ) {
 
-      bot = polygons->m[1][point];
-      mid = polygons->m[1][point+1];
-      top = polygons->m[1][point+2];
+      bmt = findbmt(point, polygons);
 
-      scanlineC(bot, mid, top);
+      scanlineC(bmt[0], bmt[1], bmt[2], bmt[3], bmt[4], bmt[5], s);
 
       draw_line( polygons->m[0][point],
 		 polygons->m[1][point],
