@@ -23,7 +23,6 @@ void scanlineC(int bx, int mx, int tx, int by, int my, int ty, screen s) {
 
   //Set color
   color c;
-  srand(time(NULL));
   c.red = rand() % 255;
   c.green = rand() % 255;
   c.blue =  rand() % 255;    
@@ -32,8 +31,7 @@ void scanlineC(int bx, int mx, int tx, int by, int my, int ty, screen s) {
   //top to bottom
   dY = ty-by;
   dX = tx-bx;
-  if (dY == 0) { m1 = 0.00; }
-  else { m1 = (1.00)*dX/dY; }
+  m1 = (1.00)*dX/dY;
   //middle to bottom
   dY = my-by;
   dX = mx-bx;
@@ -44,14 +42,14 @@ void scanlineC(int bx, int mx, int tx, int by, int my, int ty, screen s) {
   dX = tx-mx;
   if (dY == 0) { m3 = 0.00; }
   else { m3 = (1.00)*dX/dY; }
-  printf("Slope 1: %f\nSlope 2: %f\nSlope 3: %f\n", m1, m2, m3);
+  printf("Slope B->T: %f\nSlope B->M: %f\nSlope M->T: %f\n", m1, m2, m3);
 
   while( y < ty ) {
-    x0 += m1;
-    if (y >= my) { x1 += m3; }
-    else { x1 += m2; }
-
     y++;
+    x0 += m1;
+    if (y <= my) { x1 += m2; }
+    else { x1 += m3; }
+
     draw_line(x0, y, x1, y, s, c);
   }
 }
@@ -61,10 +59,10 @@ int * findbmt(int p, struct matrix *polygons) {
   int *ret = malloc(sizeof(int)*10);
 
   //If p is bottom
-  if (polygons->m[1][p] <= polygons->m[1][p+1] && polygons->m[1][p] < polygons->m[1][p+2]) {
+  if (polygons->m[1][p] < polygons->m[1][p+1] && polygons->m[1][p] < polygons->m[1][p+2]) {
     bx = polygons->m[0][p];
     by = polygons->m[1][p];
-    if (polygons->m[1][p+1] <= polygons->m[1][p+2]) {
+    if (polygons->m[1][p+1] < polygons->m[1][p+2]) {
       mx = polygons->m[0][p+1];
       my = polygons->m[1][p+1];
       tx = polygons->m[0][p+2];
@@ -78,14 +76,14 @@ int * findbmt(int p, struct matrix *polygons) {
     }
   }
   //if p+1 is bottom
-  else if (polygons->m[1][p+1] <= polygons->m[1][p] && polygons->m[1][p+1] < polygons->m[1][p+2]) {
+  else if (polygons->m[1][p+1] < polygons->m[1][p] && polygons->m[1][p+1] < polygons->m[1][p+2]) {
     bx = polygons->m[0][p+1];
     by = polygons->m[1][p+1];
-    if (polygons->m[1][p] <= polygons->m[1][p+2]) {
+    if (polygons->m[1][p] < polygons->m[1][p+2]) {
       mx = polygons->m[0][p];
       my = polygons->m[1][p];
       tx = polygons->m[0][p+2];
-      my = polygons->m[1][p+2];
+      ty = polygons->m[1][p+2];
     }
     else {
       mx = polygons->m[0][p+2];
@@ -98,7 +96,7 @@ int * findbmt(int p, struct matrix *polygons) {
   else {
     bx = polygons->m[0][p+2];
     by = polygons->m[1][p+2];
-    if (polygons->m[1][p] <= polygons->m[1][p+1]) {
+    if (polygons->m[1][p] < polygons->m[1][p+1]) {
       mx = polygons->m[0][p];
       my = polygons->m[1][p];
       tx = polygons->m[0][p+1];
